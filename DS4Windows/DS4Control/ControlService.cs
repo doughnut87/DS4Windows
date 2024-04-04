@@ -814,6 +814,18 @@ namespace DS4Windows
                 tempXbox.cont.FeedbackReceived += p;
                 tempXbox.forceFeedbacksDict.Add(index, p);
             }
+            if (contType == OutContType.DS4)
+            {
+                DS4OutDevice tempDS4 = outDevice as DS4OutDevice;
+                Nefarius.ViGEm.Client.Targets.DualShock4FeedbackReceivedEventHandler p = (sender, args) =>
+                {
+                    //Console.WriteLine("Rumble ({0}, {1}) {2}",
+                    //    args.LargeMotor, args.SmallMotor, DateTime.Now.ToString("hh:mm:ss.FFFF"));
+                    SetDevRumble(device, args.LargeMotor, args.SmallMotor, devIndex);
+                };
+                tempDS4.cont.FeedbackReceived += p;
+                tempDS4.forceFeedbacksDict.Add(index, p);
+            }
             //else if (contType == OutContType.DS4)
             //{
             //    DS4OutDevice tempDS4 = outDevice as DS4OutDevice;
@@ -1413,7 +1425,7 @@ namespace DS4Windows
             {
                 DualShockPadMeta padDetail = new DualShockPadMeta();
                 GetPadDetailForIdx(tempIdx, ref padDetail);
-                DS4State stateForUdp = TempState[tempIdx];
+                DS4State stateForUdp = TempState[tempIdx].Clone(); // not sure why it gets it overrites the actual output, so save it
 
                 CurrentState[tempIdx].CopyTo(stateForUdp);
                 if (Global.IsUsingUDPServerSmoothing())

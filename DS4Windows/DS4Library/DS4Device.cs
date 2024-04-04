@@ -1074,6 +1074,7 @@ namespace DS4Windows
         bool timeStampInit = false;
         uint timeStampPrevious = 0;
         uint deltaTimeCurrent = 0;
+        bool useSystemClock = false;
 
 
         protected const int BT_INPUT_REPORT_CRC32_POS = 74; //last 4 bytes of the 78-sized input report are crc32
@@ -1374,16 +1375,19 @@ namespace DS4Windows
                     }
 
                     // Make sure timestamps don't match
-                    if (deltaTimeCurrent != 0)
+                    if (!useSystemClock && deltaTimeCurrent != 0)
                     {
                         elapsedDeltaTime = 0.000001 * deltaTimeCurrent; // Convert from microseconds to seconds
                         cState.totalMicroSec = pState.totalMicroSec + deltaTimeCurrent;
                     }
                     else
-                    {
+                    {              
                         // Duplicate timestamp. Use system clock for elapsed time instead
                         elapsedDeltaTime = lastTimeElapsedDouble * .001;
                         cState.totalMicroSec = pState.totalMicroSec + (uint)(elapsedDeltaTime * 1000000);
+                        // provided ts is duping on packets, ignore for device, otherwise accumulated time (elapsed, totalmicro) essentially gets counted twice
+                        // i.e. dev TimeStamp delta gets added on top of elapsed time, which already counted using systemclock when TS was a dupe. 
+                        useSystemClock = true;  
                     }
 
                     cState.elapsedTime = elapsedDeltaTime;
